@@ -28,4 +28,6 @@ public interface OfferService<ID> {
     List<OfferCardViewModel> findAllCardsByBrandAndModel(String brandName, String modelName);
 
     OfferCardViewModel findCardById(ID id);
+
+    List<OfferCardViewModel> findCardsByUsername(String username);
 }

@@ -17,4 +17,5 @@ public interface OfferRepository extends JpaRepository<Offer, UUID> {
 
     @Query("select o from Offer o join o.seller u where u.isActive = true and o.model.id = :id")
     List<Offer> findAllOffersByActiveUsersAndModel(UUID id);
+
 }

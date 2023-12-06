@@ -155,4 +155,12 @@ public class OfferServiceImpl implements OfferService<UUID> {
         ModelDto modelDto = modelService.findById(offer.getModelUuid());
         return new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName());
     }
+
+    @Override
+    public List<OfferCardViewModel> findCardsByUsername(String username) {
+        return findAllCards()
+                .stream()
+                .filter(offerCardViewModel -> offerCardViewModel.getOfferDto().getSellerUsername().equals(username))
+                .collect(Collectors.toList());
+    }
 }

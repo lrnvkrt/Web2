@@ -1,6 +1,7 @@
 package com.example.Web2.controllers;
 
 import com.example.Web2.dtos.UserDto;
+import com.example.Web2.services.OfferService;
 import com.example.Web2.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -19,51 +20,23 @@ import java.util.UUID;
 public class UserController {
     private UserService userService;
 
+    private OfferService offerService;
+
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
 
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @Autowired
+    public void setOfferService(OfferService offerService) {
+        this.offerService = offerService;
     }
 
-    @GetMapping("/all")
-    public String showAllUsers(Model model) {
-        model.addAttribute("users", userService.findAllUsers());
-        return "all-users";
-    }
-
-    @GetMapping("/adduser")
-    public String getFormAddUser(Model model) {
-        model.addAttribute("new-user", new UserDto());
-        return "user-form";
-    }
-
-    @PostMapping("/adduser")
-    public String addUser(@Validated UserDto userDto, BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            return "user-form";
-        }
-
-        userService.addUser(userDto);
-        return "redirect:/all";
-    }
-
-    @PostMapping("/update/{id}")
-    public String updateUser(@PathVariable("id") UUID id, @Validated UserDto userDto,
-                             BindingResult result, Model model) {
-        if (result.hasErrors()) {
-            return "update-user";
-        }
-
-        userService.updateUser(userDto);
-        return "redirect:/index";
-    }
-
-    @PostMapping("/delete/{username}")
-    public String deleteUser(@PathVariable("id") String username, Model model) {
-        userService.changeActivation(username);
-        return "redirect:/index";
+    @GetMapping("/details/{username}")
+    public String getUser(@PathVariable("username") String username, Model model) {
+        model.addAttribute("user", userService.findByUsername(username));
+        model.addAttribute("offers", offerService.findCardsByUsername(username));
+        System.out.println(offerService.findCardsByUsername(username).size());
+        return "user-details";
     }
 }
