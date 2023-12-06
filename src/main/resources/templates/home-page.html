@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
+</head>
+<body>
+<h1>Добро пожаловать!</h1>
+<p>Все бренды</p>
+<ul>
+    <li th:each="brand:${brands}">
+        <a th:href="@{'/offers/' + ${brand.name}}" th:text="${brand.name}"></a>
+    </li>
+</ul>
+<a href="/offers/all">Показать все предложения</a>
+</body>
+</html>

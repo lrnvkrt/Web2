@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head>
+    <meta charset="UTF-8">
+    <title>Объявления</title>
+</head>
+<body>
+<div th:if="${#vars.models!=null}">
+    <p>Все модели <span th:text="${brand}"></span></p>
+    <ul>
+        <li th:each="model:${models}">
+            <a th:href="@{'/offers/' + ${brand} + '/' + ${model.name}}" th:text="${model.name}"></a>
+        </li>
+    </ul>
+</div>
+<div th:if="${#vars.brandName!=null and #vars.modelName!=null}">
+    <p>Все автомобили <span th:text="${brandName}"></span> <span th:text="${modelName}"></span></p>
+</div>
+<div th:each="offerCard:${offerCards}">
+    <a th:href="@{'/offers/details/' + ${offerCard.offerDto.id}}">
+        <h2 th:text="${offerCard.brandName} + ' ' + ${offerCard.modelName}"></h2>
+        <img th:src="${offerCard.offerDto.imageUrl}">
+        <p th:text="${offerCard.offerDto.price}"></p>
+    </a>
+</div>
+</body>
+</html>
