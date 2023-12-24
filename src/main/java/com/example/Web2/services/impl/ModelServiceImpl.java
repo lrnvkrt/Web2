@@ -10,6 +10,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,6 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@EnableCaching
 public class ModelServiceImpl implements ModelService<UUID> {
 
     private ModelRepository modelRepository;
@@ -42,6 +46,7 @@ public class ModelServiceImpl implements ModelService<UUID> {
         this.brandService = brandService;
     }
 
+    @CacheEvict(cacheNames = "models", allEntries = true)
     @Override
     public ModelDto addModel(ModelDto modelDto) {
         if (!this.validationUtil.isValid(modelDto)) {
@@ -59,6 +64,7 @@ public class ModelServiceImpl implements ModelService<UUID> {
         return modelMapper.map(this.modelRepository.save(model), ModelDto.class);
     }
 
+    @CacheEvict(cacheNames = "models", allEntries = true)
     @Override
     public ModelDto updateModel(ModelDto modelDto) {
         if (!this.validationUtil.isValid(modelDto)) {
@@ -81,11 +87,13 @@ public class ModelServiceImpl implements ModelService<UUID> {
         return modelMapper.map(this.modelRepository.save(model), ModelDto.class);
     }
 
+    @CacheEvict(cacheNames = "models", allEntries = true)
     @Override
     public void deleteModel(UUID uuid) {
         this.modelRepository.deleteById(uuid);
     }
 
+    @Cacheable("models")
     @Override
     public List<ModelDto> findAllModels() {
         return this.modelRepository
@@ -95,6 +103,7 @@ public class ModelServiceImpl implements ModelService<UUID> {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "modelsByBrand", key = "#brandName")
     @Override
     public List<ModelDto> findModelsByBrandName(String brandName) {
         return modelRepository
@@ -109,6 +118,7 @@ public class ModelServiceImpl implements ModelService<UUID> {
         return this.modelRepository.findById(uuid).orElseThrow(() -> new EntityNotFoundException("Модели с таким ID нет: " + uuid));
     }
 
+    @Cacheable(value = "modelsById", key = "#uuid")
     @Override
     public ModelDto findById(UUID uuid) {
         return modelMapper.map(findModelById(uuid), ModelDto.class);

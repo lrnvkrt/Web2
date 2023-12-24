@@ -70,8 +70,8 @@ public class ModelDto extends BaseEntityDto{
     public String getBrandName() {
         return brandName;
     }
-    public void setBrandDto(String brandDto) {
-        this.brandName = brandDto;
+    public void setBrandName(String brandName) {
+        this.brandName = brandName;
     }
 
 

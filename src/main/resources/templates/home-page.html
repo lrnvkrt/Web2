@@ -1,10 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org/">
 <head>
     <meta charset="UTF-8">
     <title>Главная страница</title>
 </head>
 <body>
+<th:block th:unless="${#authorization.expression('isAuthenticated()')}">
+    <li class="nav-item"><a th:href="@{/login}" class="nav-link">Войти</a></li>
+    <li class="nav-item"><a th:href="@{'/user/registration'}">Регистрация</a></li>
+</th:block>
+<th:block th:if="${#authorization.expression('isAuthenticated()')}">
+    <li class="nav-item"><a th:href="@{/logout}" class="nav-link">Выйти</a></li>
+    <li class="nav-item"><a th:href="@{'user/account'}">Личный кабинет</a></li>
+    <li th:if="${#authorization.expression('hasRole(''Admin'')')}">
+        <a href="/admin">Панель администратора</a></li>
+</th:block>
 <h1>Добро пожаловать!</h1>
 <p>Все бренды</p>
 <ul>
@@ -12,6 +22,22 @@
         <a th:href="@{'/offers/' + ${brand.name}}" th:text="${brand.name}"></a>
     </li>
 </ul>
-<a href="/offers/all">Показать все предложения</a>
+<h2>Популярные предложения</h2>
+<div th:each="topOfferCard:${topOffers}">
+    <a th:href="@{'/offers/details/' + ${topOfferCard.offerDto.id}}">
+        <h3 th:text="${topOfferCard.brandName} + ' ' + ${topOfferCard.modelName}"></h3>
+        <img th:src="${topOfferCard.offerDto.imageUrl}" width="200" height="150">
+        <p th:text="${topOfferCard.offerDto.price}"></p>
+    </a>
+</div>
+<h2>Последние новинки</h2>
+<div th:each="newOfferCard:${newOfferCards}">
+    <a th:href="@{'/offers/details/' + ${newOfferCard.offerDto.id}}">
+        <h3 th:text="${newOfferCard.brandName} + ' ' + ${newOfferCard.modelName}"></h3>
+        <img th:src="${newOfferCard.offerDto.imageUrl}" width="200" height="150">
+        <p th:text="${newOfferCard.offerDto.price}"></p>
+    </a>
+</div>
+<h2><a href="/offers/all">Показать все предложения</a></h2>
 </body>
 </html>

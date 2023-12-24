@@ -16,4 +16,5 @@ public interface BrandService<ID> {
     void deleteBrand(ID id);
 
     List<BrandDto> findAllBrands();
+
 }

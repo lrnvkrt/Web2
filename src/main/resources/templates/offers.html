@@ -1,25 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org/">
 <head>
     <meta charset="UTF-8">
     <title>Объявления</title>
 </head>
 <body>
 <div th:if="${#vars.models!=null}">
-    <p>Все модели <span th:text="${brand}"></span></p>
+    <h2><p>Все модели <span th:text="${brand}"></span></p></h2>
+    <ul>
+        <li th:each="username:${popularUsers}">
+            <a th:href="@{'/users/details/' + ${username}}"></a>
+        </li>
+    </ul>
     <ul>
         <li th:each="model:${models}">
-            <a th:href="@{'/offers/' + ${brand} + '/' + ${model.name}}" th:text="${model.name}"></a>
+            <a th:href="@{'/offers/' + ${brand} + '/' + ${model.name}}" th:text="${model.name} + ' (' + ${model.startYear} + '-' + ${model.endYear} + ')'"></a>
         </li>
     </ul>
 </div>
 <div th:if="${#vars.brandName!=null and #vars.modelName!=null}">
-    <p>Все автомобили <span th:text="${brandName}"></span> <span th:text="${modelName}"></span></p>
+    <h2><p>Все автомобили <span th:text="${brandName}"></span> <span th:text="${modelName}"></span></p></h2>
 </div>
+<h3>Объявления</h3>
 <div th:each="offerCard:${offerCards}">
     <a th:href="@{'/offers/details/' + ${offerCard.offerDto.id}}">
-        <h2 th:text="${offerCard.brandName} + ' ' + ${offerCard.modelName}"></h2>
-        <img th:src="${offerCard.offerDto.imageUrl}">
+        <h3 th:text="${offerCard.brandName} + ' ' + ${offerCard.modelName}"></h3>
+        <img th:src="${offerCard.offerDto.imageUrl}" width="200" height="150">
         <p th:text="${offerCard.offerDto.price}"></p>
     </a>
 </div>

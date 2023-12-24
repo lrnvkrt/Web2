@@ -1,10 +1,31 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<html lang="ru" xmlns:th="http://www.thymeleaf.org/">
 <head>
     <meta charset="UTF-8">
     <title th:text="${offer.brandName} + ' ' + ${offer.modelName}"></title>
 </head>
 <body>
-
+<h2 th:text="${offer.brandName} + ' ' + ${offer.modelName}"></h2>
+<img th:src="${offer.offerDto.imageUrl}" width="200" height="150">
+<p>Цена: <span th:text="${offer.offerDto.price}"></span></p>
+<p>Год выпуска: <span th:text="${offer.offerDto.year}"></span></p>
+<p>Пробег: <span th:text="${offer.offerDto.mileage}"></span> км</p>
+<p>КПП: <span th:switch="${offer.offerDto.transmission}">
+        <span th:case="${T(com.example.Web2.models.Offer.Transmission).AUTOMATIC}">Автомат</span>
+        <span th:case="${T(com.example.Web2.models.Offer.Transmission).MANUAL}">Механика</span>
+        <span th:case="*" th:text="${offer.offerDto.transmission}"></span>
+    </span></p>
+<p>Двигатель: <span th:switch="${offer.offerDto.engine}">
+        <span th:case="${T(com.example.Web2.models.Offer.Engine).GASOLINE}">Бензин</span>
+        <span th:case="${T(com.example.Web2.models.Offer.Engine).DIESEL}">Дизель</span>
+        <span th:case="${T(com.example.Web2.models.Offer.Engine).HYBRID}">Гибрид</span>
+        <span th:case="${T(com.example.Web2.models.Offer.Engine).ELECTRIC}">Электро</span>
+        <span th:case="*" th:text="${offer.offerDto.engine}"></span>
+        <span th:case="*">Не указан</span>
+    </span></p>
+<a th:href="@{'/user/details/' + ${offer.offerDto.sellerUsername}}">
+    Продавец: <span th:text="${offer.offerDto.sellerUsername}"></span>
+</a>
+<p>Описание: <span th:text="${offer.offerDto.description}"></span></p>
 </body>
 </html>

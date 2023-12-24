@@ -19,7 +19,7 @@ public class MapperConfig {
         TypeMap<Model, ModelDto> modelPropertyMapper = modelMapper.createTypeMap(Model.class,
                 ModelDto.class);
         modelPropertyMapper.addMapping(
-                model -> model.getBrand().getName(), ModelDto::setBrandDto
+                model -> model.getBrand().getName(), ModelDto::setBrandName
         );
         TypeMap<User, UserDto> userPropertyMapper = modelMapper.createTypeMap(User.class,
                 UserDto.class);

@@ -19,7 +19,7 @@ public class User extends AuditEntity {
     private LocalDateTime created;
     private LocalDateTime modified;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_role_id", referencedColumnName = "id", nullable = false)
     private UserRole userRole;
 

@@ -9,6 +9,9 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,6 +21,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@EnableCaching
 public class BrandServiceImpl implements BrandService<UUID> {
 
     private BrandRepository brandRepository;
@@ -35,6 +39,7 @@ public class BrandServiceImpl implements BrandService<UUID> {
         this.brandRepository = brandRepository;
     }
 
+    @CacheEvict(cacheNames = "brands", allEntries = true)
     @Override
     public BrandDto addBrand(BrandDto brandDto) {
         if (!this.validationUtil.isValid(brandDto)) {
@@ -52,6 +57,7 @@ public class BrandServiceImpl implements BrandService<UUID> {
 
     }
 
+    @CacheEvict(cacheNames = "brands", allEntries = true)
     @Override
     public BrandDto updateBrand(BrandDto brandDto) {
         if (!this.validationUtil.isValid(brandDto)) {
@@ -77,11 +83,13 @@ public class BrandServiceImpl implements BrandService<UUID> {
         return this.brandRepository.findBrandByName(name).orElseThrow();
     }
 
+    @CacheEvict(cacheNames = "brands", allEntries = true)
     @Override
     public void deleteBrand(UUID uuid) {
         this.brandRepository.deleteById(uuid);
     }
 
+    @Cacheable("brands")
     @Override
     public List<BrandDto> findAllBrands() {
         return this.brandRepository

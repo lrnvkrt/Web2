@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Username Update Form</title>
+</head>
+<body>
+
+<h1>Username Update Form</h1>
+
+<form action="/user/edit/username" method="post" th:object="${usernameDto}">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <div>
+        <label>New Username: <input type="text" th:field="*{username}" /></label>
+    </div>
+
+    <div th:if="${#fields.hasErrors()}" class="error-message">
+        <p th:each="err : ${#fields.errors()}" th:text="${err}"></p>
+    </div>
+
+    <button type="submit">Update Username</button>
+</form>
+
+</body>
+</html>

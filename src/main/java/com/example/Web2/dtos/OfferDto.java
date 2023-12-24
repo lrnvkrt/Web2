@@ -29,7 +29,7 @@ public class OfferDto extends BaseEntityDto{
 
     private String sellerUsername;
 
-    protected OfferDto() {}
+    public OfferDto() {}
 
     public OfferDto(String description, Offer.Engine engine, String imageUrl, Integer mileage, BigDecimal price, Offer.Transmission transmission, Integer year, UUID modelDto, String sellerDto) {
         this.description = description;

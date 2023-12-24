@@ -2,20 +2,20 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org/">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${user.username}"></title>
+    <title>Мои предложения</title>
 </head>
 <body>
-<h2 th:text="${user.username}"></h2>
-<img th:src="${user.imageUrl}" width="200" height="150">
-<p>Имя: <span th:text="${user.firstName}"></span></p>
-<p>Фамилия: <span th:text="${user.lastName}"></span></p>
-<h3>Объявления</h3>
+<h1>Мои предложения</h1>
+<a href="/offers/add">Создать новое предложение</a>
 <div th:each="offerCard:${offers}">
     <a th:href="@{'/offers/details/' + ${offerCard.offerDto.id}}">
         <h2 th:text="${offerCard.brandName} + ' ' + ${offerCard.modelName}"></h2>
         <img th:src="${offerCard.offerDto.imageUrl}" width="200" height="150">
         <p th:text="${offerCard.offerDto.price}"></p>
     </a>
+    <br>
+    <a th:href="@{'/offers/edit/' + ${offerCard.offerDto.id}}">Изменить предложение</a>
+    <a th:href="@{'/offers/delete/' + ${offerCard.offerDto.id}}">Удалить предложение</a>
 </div>
 </body>
 </html>

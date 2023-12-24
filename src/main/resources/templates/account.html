@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org/">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+</head>
+<body>
+<h2 th:text="${user.username}"></h2>
+<img th:src="${user.imageUrl}" width="200" height="150">
+<p>Имя: <span th:text="${user.firstName}"></span></p>
+<p>Фамилия: <span th:text="${user.lastName}"></span></p>
+<a href="/user/edit">Редактировать профиль</a>
+<br>
+<a href="/user/my_offers">Мои предложения</a>
+</body>
+</html>

@@ -1,38 +1,67 @@
 package com.example.Web2.dtos;
 
+import com.example.Web2.util.FieldsValueMatch;
 import com.example.Web2.util.UniqueUsername;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
-public class UserDto extends BaseEntityDto{
+@FieldsValueMatch(field = "password", fieldMatch = "confirmPassword", message = "Пароли не совпадают!")
+public class UserRegistrationDto {
 
+    @UniqueUsername
     private String username;
+
+    private String password;
+
+    private String confirmPassword;
     private String firstName;
     private String lastName;
-    private Boolean isActive;
     private String imageUrl;
-    private UserRoleDto userRoleDto;
 
-    public UserDto() {}
+    public UserRegistrationDto() {
+    }
 
-    public UserDto(String username, String firstName, String lastName, String imageUrl, UserRoleDto userRoleDto) {
+    public UserRegistrationDto(String username, String password, String confirmPassword, String firstName, String lastName, String imageUrl) {
         this.username = username;
+        this.password = password;
+        this.confirmPassword = confirmPassword;
         this.firstName = firstName;
         this.lastName = lastName;
         this.imageUrl = imageUrl;
-        this.userRoleDto = userRoleDto;
     }
 
     @NotNull
     @NotEmpty
     @Length(min = 2, message = "Username must be more than two characters!")
+
     public String getUsername() {
         return username;
     }
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @NotNull
+    @NotEmpty
+    @Length(min = 5, message = "Password must be greater than five characters!")
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @NotNull
+    @NotEmpty
+    public String getConfirmPassword() {
+        return confirmPassword;
+    }
+
+    public void setConfirmPassword(String confirmPassword) {
+        this.confirmPassword = confirmPassword;
     }
 
     @NotNull
@@ -57,40 +86,11 @@ public class UserDto extends BaseEntityDto{
         this.lastName = lastName;
     }
 
-    public Boolean getActive() {
-        return isActive;
-    }
-
-    public void setActive(Boolean active) {
-        isActive = active;
-    }
-
     public String getImageUrl() {
         return imageUrl;
     }
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
-    }
-
-
-    public UserRoleDto getUserRoleDto() {
-        return userRoleDto;
-    }
-
-    public void setUserRoleDto(UserRoleDto userRoleDto) {
-        this.userRoleDto = userRoleDto;
-    }
-
-    @Override
-    public String toString() {
-        return "UserDto{" +
-                "username='" + username + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", isActive=" + isActive +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", userRoleDto=" + userRoleDto +
-                '}';
     }
 }

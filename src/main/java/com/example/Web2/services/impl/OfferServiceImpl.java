@@ -13,16 +13,19 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@EnableCaching
 public class OfferServiceImpl implements OfferService<UUID> {
 
     private OfferRepository offerRepository;
@@ -30,6 +33,8 @@ public class OfferServiceImpl implements OfferService<UUID> {
     private ModelService<UUID> modelService;
     private final ModelMapper modelMapper;
     private final ValidationUtil validationUtil;
+    private RedisTemplate<String, String> redisTemplate;
+    private static final String WATCH_COUNT_KEY = "offer:watch:count";
 
     @Autowired
     public OfferServiceImpl(ModelMapper modelMapper, ValidationUtil validationUtil) {
@@ -50,6 +55,13 @@ public class OfferServiceImpl implements OfferService<UUID> {
         this.modelService = modelService;
     }
 
+    @Autowired
+    public void setRedisTemplate(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+
+    @CacheEvict(cacheNames = "offers", allEntries = true)
     @Override
     public OfferDto addOffer(OfferDto offerDto) {
         if (!this.validationUtil.isValid(offerDto)) {
@@ -66,10 +78,10 @@ public class OfferServiceImpl implements OfferService<UUID> {
         offer.setSeller(userService.findByUsername(offerDto.getSellerUsername()));
         offer.setModel(modelService.findModelById(offerDto.getModelUuid()));
         Offer savedOffer = this.offerRepository.save(offer);
-        System.out.println(savedOffer);
         return modelMapper.map(savedOffer, OfferDto.class);
     }
 
+    @CacheEvict(cacheNames = "offers", allEntries = true)
     @Override
     public OfferDto updateOffer(OfferDto offerDto) {
         if (!this.validationUtil.isValid(offerDto)) {
@@ -94,16 +106,19 @@ public class OfferServiceImpl implements OfferService<UUID> {
         return modelMapper.map(savedOffer, OfferDto.class);
     }
 
+    @CacheEvict(cacheNames = "offers", allEntries = true)
     @Override
     public void deleteOffer(UUID uuid) {
         this.offerRepository.deleteById(uuid);
     }
+
 
     @Override
     public OfferDto findById(UUID uuid) {
         return modelMapper.map(this.offerRepository.findById(uuid).orElseThrow(() -> new EntityNotFoundException("Предложения с таким ID нет!")), OfferDto.class);
     }
 
+    @Cacheable("offers")
     @Override
     public List<OfferDto> findAllOffers() {
         return this.offerRepository
@@ -112,6 +127,34 @@ public class OfferServiceImpl implements OfferService<UUID> {
                 .map(offer -> modelMapper.map(offer, OfferDto.class))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<OfferDto> findAllOffersByBrand(String brandName) {
+        return this.offerRepository
+                .findByBrandName(brandName)
+                .stream()
+                .map(offer -> modelMapper.map(offer, OfferDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OfferDto> findAllOffersByModel(String modelName) {
+        return this.offerRepository
+                .findAllByModelName(modelName)
+                .stream()
+                .map(offer -> modelMapper.map(offer, OfferDto.class))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OfferDto> findAllOffersByUsername(String username) {
+        return this.offerRepository
+                .findAllBySellerUsername(username)
+                .stream()
+                .map(offer -> modelMapper.map(offer, OfferDto.class))
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public List<OfferDto> findAllOffersByActiveUsersAndModel(UUID uuid) {
@@ -123,7 +166,7 @@ public class OfferServiceImpl implements OfferService<UUID> {
     }
 
     @Override
-    public List<OfferCardViewModel> findAllCards() {
+    public List<OfferCardViewModel> findAllOfferCards() {
         List<OfferCardViewModel> cards = new ArrayList<>();
         List<OfferDto> offers = findAllOffers();
         for (OfferDto offer : offers) {
@@ -135,18 +178,24 @@ public class OfferServiceImpl implements OfferService<UUID> {
 
     @Override
     public List<OfferCardViewModel> findAllCardsByBrand(String brandName) {
-        return findAllCards()
-                .stream()
-                .filter(offerCardViewModel -> offerCardViewModel.getBrandName().equals(brandName))
-                .collect(Collectors.toList());
+        List<OfferCardViewModel> cards = new ArrayList<>();
+        List<OfferDto> offers = findAllOffersByBrand(brandName);
+        for (OfferDto offer : offers) {
+            ModelDto modelDto = modelService.findById(offer.getModelUuid());
+            cards.add(new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName()));
+        }
+        return cards;
     }
 
     @Override
-    public List<OfferCardViewModel> findAllCardsByBrandAndModel(String brandName, String modelName) {
-        return findAllCardsByBrand(brandName)
-                .stream()
-                .filter(offerCardViewModel -> offerCardViewModel.getModelName().equals(modelName))
-                .collect(Collectors.toList());
+    public List<OfferCardViewModel> findAllCardsByModel(String modelName) {
+        List<OfferCardViewModel> cards = new ArrayList<>();
+        List<OfferDto> offers = findAllOffersByModel(modelName);
+        for (OfferDto offer : offers) {
+            ModelDto modelDto = modelService.findById(offer.getModelUuid());
+            cards.add(new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName()));
+        }
+        return cards;
     }
 
     @Override
@@ -158,9 +207,41 @@ public class OfferServiceImpl implements OfferService<UUID> {
 
     @Override
     public List<OfferCardViewModel> findCardsByUsername(String username) {
-        return findAllCards()
-                .stream()
-                .filter(offerCardViewModel -> offerCardViewModel.getOfferDto().getSellerUsername().equals(username))
-                .collect(Collectors.toList());
+        List<OfferCardViewModel> cards = new ArrayList<>();
+        List<OfferDto> offers = findAllOffersByUsername(username);
+        for (OfferDto offer : offers) {
+            ModelDto modelDto = modelService.findById(offer.getModelUuid());
+            cards.add(new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName()));
+        }
+        return cards;
     }
+
+    @Override
+    public List<OfferCardViewModel> findNewOffers() {
+        List<OfferCardViewModel> cards = new ArrayList<>();
+        List<OfferDto> offers = this.offerRepository
+                .findTop5ByOrderByCreatedDesc()
+                .stream()
+                .map(offer -> modelMapper.map(offer, OfferDto.class))
+                .toList();
+        for (OfferDto offer : offers) {
+            ModelDto modelDto = modelService.findById(offer.getModelUuid());
+            cards.add(new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName()));
+        }
+        return cards;
+    }
+
+    public void incrementWatchCount(UUID offerId) {
+        redisTemplate.opsForZSet().incrementScore(WATCH_COUNT_KEY, offerId.toString(), 1);
+    }
+
+    public Set<OfferCardViewModel> getTopOffers(int count) {
+        // Retrieve the top N offers based on watch counts
+        Set<String> list = redisTemplate.opsForZSet().range(WATCH_COUNT_KEY, 0, count - 1);
+        if (list != null) {
+            return list.stream().map(UUID::fromString).map(this::findCardById).collect(Collectors.toSet());
+        }
+        return new HashSet<>();
+    }
+
 }
