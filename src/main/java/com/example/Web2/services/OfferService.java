@@ -43,6 +43,6 @@ public interface OfferService<ID> {
 
     void incrementWatchCount(UUID uuid);
 
-    Set<OfferCardViewModel> getTopOffers(int count);
+    List<OfferCardViewModel> getTopOffers(int count);
 
 }

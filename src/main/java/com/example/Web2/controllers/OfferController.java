@@ -126,14 +126,17 @@ public class OfferController {
 
     @PostMapping("/edit/{id}")
     public String doEditOffer(@PathVariable("id") UUID uuid, @Valid @ModelAttribute("newOffer") OfferDto offerDto,
-                             BindingResult bindingResult,
-                             Principal principal,
-                             Model model) {
+                              BindingResult bindingResult,
+                              Principal principal,
+                              Model model) {
         if (bindingResult.hasErrors()) {
             System.out.println(bindingResult.getAllErrors());
             model.addAttribute("availableModels", modelService.findAllModels());
             model.addAttribute("editMode", true);
             return "offer-add";
+        }
+        if (!offerDto.getSellerUsername().equals(principal.getName())) {
+            throw new AccessDeniedException("У Вас нет доступа к данному методу!");
         }
         offerDto.setSellerUsername(principal.getName());
         this.offerService.updateOffer(offerDto);

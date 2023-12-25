@@ -22,12 +22,33 @@ public class SecurityConfig {
                                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                                 .permitAll()
 
-//                                .requestMatchers(HttpMethod.POST, "users/register").permitAll()
+// .requestMatchers(HttpMethod.POST, "users/register").permitAll()
 
-                                .anyRequest().permitAll()
+                                .requestMatchers("/error?continue").permitAll()
+                                .requestMatchers("/home").permitAll()
+
+                                .requestMatchers("/login").permitAll()
+
+                                .requestMatchers(HttpMethod.GET,"/user/registration").permitAll()
+                                .requestMatchers(HttpMethod.POST,"/user/registration").permitAll()
+                                .requestMatchers("/user/details/**").permitAll()
+
+                                .requestMatchers("/offers/add").authenticated()
+
+
+                                .requestMatchers("/offers/details/**").permitAll()
+                                .requestMatchers("/offers/edit/**").authenticated()
+                                .requestMatchers("/offers/delete/**").authenticated()
+
+
+                                .requestMatchers("/offers/**").permitAll()
+                                .requestMatchers("/user/**").authenticated()
+                                .requestMatchers("/admin/**").hasRole("Admin")
+
                 ).formLogin((formLogin) -> formLogin.defaultSuccessUrl("/home"))
                 .logout((logout) -> logout.logoutSuccessUrl("/home"));
 
+        httpSecurity.formLogin((formLogin) -> formLogin.defaultSuccessUrl("/home").permitAll());
 
         return httpSecurity.build();
     }

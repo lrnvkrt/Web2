@@ -18,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -122,7 +123,7 @@ public class OfferServiceImpl implements OfferService<UUID> {
     @Override
     public List<OfferDto> findAllOffers() {
         return this.offerRepository
-                .findAll()
+                .findAllActiveOffers()
                 .stream()
                 .map(offer -> modelMapper.map(offer, OfferDto.class))
                 .collect(Collectors.toList());
@@ -140,7 +141,7 @@ public class OfferServiceImpl implements OfferService<UUID> {
     @Override
     public List<OfferDto> findAllOffersByModel(String modelName) {
         return this.offerRepository
-                .findAllByModelName(modelName)
+                .findAllByModelNameAndSellerIsActive(modelName, true)
                 .stream()
                 .map(offer -> modelMapper.map(offer, OfferDto.class))
                 .collect(Collectors.toList());
@@ -225,8 +226,10 @@ public class OfferServiceImpl implements OfferService<UUID> {
                 .map(offer -> modelMapper.map(offer, OfferDto.class))
                 .toList();
         for (OfferDto offer : offers) {
-            ModelDto modelDto = modelService.findById(offer.getModelUuid());
-            cards.add(new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName()));
+            if(userService.findByUsername(offer.getSellerUsername()).getActive()) {
+                ModelDto modelDto = modelService.findById(offer.getModelUuid());
+                cards.add(new OfferCardViewModel(offer, modelDto.getBrandName(), modelDto.getName()));
+            }
         }
         return cards;
     }
@@ -235,13 +238,25 @@ public class OfferServiceImpl implements OfferService<UUID> {
         redisTemplate.opsForZSet().incrementScore(WATCH_COUNT_KEY, offerId.toString(), 1);
     }
 
-    public Set<OfferCardViewModel> getTopOffers(int count) {
-        // Retrieve the top N offers based on watch counts
-        Set<String> list = redisTemplate.opsForZSet().range(WATCH_COUNT_KEY, 0, count - 1);
-        if (list != null) {
-            return list.stream().map(UUID::fromString).map(this::findCardById).collect(Collectors.toSet());
+    public List<OfferCardViewModel> getTopOffers(int count) {
+        // Retrieve the top N offers based on watch counts, maintaining order by watch count
+        Set<ZSetOperations.TypedTuple<String>> offerScores = redisTemplate.opsForZSet().reverseRangeWithScores(WATCH_COUNT_KEY, 0, -1);
+
+
+        if (offerScores == null) {
+            return new ArrayList<>();
         }
-        return new HashSet<>();
+
+        // Map offer IDs to OfferCards using the getOfferCard method
+        return offerScores.stream()
+                .map(offerScore -> {
+                    UUID offerId = UUID.fromString(offerScore.getValue());
+                    OfferCardViewModel offerCard = findCardById(offerId);
+                    return new AbstractMap.SimpleEntry<>(offerCard, offerScore.getScore());
+                })
+                .sorted(Map.Entry.<OfferCardViewModel, Double>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
 }

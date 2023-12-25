@@ -22,12 +22,16 @@ public interface OfferRepository extends JpaRepository<Offer, UUID> {
             "order by o.mileage desc")
     Offer findBestOffer();
 
+    @Query("select o from Offer o where o.seller.isActive = true")
+    List<Offer> findAllActiveOffers();
+
     List<Offer> findTop5ByOrderByCreatedDesc();
 
-    @Query("select o from Offer o join o.model m join m.brand b where b.name = :brandName")
+    @Query("select o from Offer o join o.model m join m.brand b where b.name = :brandName and o.seller.isActive = true")
     List<Offer> findByBrandName(String brandName);
 
-    List<Offer> findAllByModelName(String modelName);
+
+    List<Offer> findAllByModelNameAndSellerIsActive(String modelName, boolean active);
 
     List<Offer> findAllBySellerUsername(String username);
     List<Offer> findAll();

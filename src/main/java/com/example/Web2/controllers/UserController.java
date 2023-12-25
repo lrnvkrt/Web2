@@ -68,6 +68,9 @@ public class UserController {
 
     @ModelAttribute("userDto")
     public UserDto initUserForm(Principal principal) {
+        if (principal == null) {
+            return new UserDto();
+        }
         return userService.findUserDtoByUsername(principal.getName());
     }
 
